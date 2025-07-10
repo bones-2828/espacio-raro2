@@ -82,14 +82,13 @@
         </thead>
         <tbody></tbody>
       </table>
-      <!-- Botón adicional para enviar todos los pedidos -->
       <button class="btn btn-success" id="sendAllOrders">Enviar todos los pedidos por email</button>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
   <script>
-    emailjs.init('9e5qncGaLfZ2nHK8R'); // Reemplaza con tu USER ID
+    emailjs.init('9e5qncGaLfZ2nHK8R'); // Tu User ID de EmailJS
 
     const productImages = {
       camiseta: 'ballena.png',
@@ -124,16 +123,26 @@
 
     function validarRut(rut) {
       rut = rut.replace(/\./g, '').replace('-', '').toUpperCase();
+      
       if (!/^\d{7,8}[0-9K]$/.test(rut)) return false;
+
       const cuerpo = rut.slice(0, -1);
       const dvIngresado = rut.slice(-1);
+
+      if (/^(\d)\1+$/.test(cuerpo)) return false; // evita todos iguales
+
       let suma = 0, multiplicador = 2;
       for (let i = cuerpo.length - 1; i >= 0; i--) {
         suma += parseInt(cuerpo.charAt(i)) * multiplicador;
         multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
       }
+
       const residuo = 11 - (suma % 11);
-      const dvEsperado = residuo === 11 ? '0' : residuo === 10 ? 'K' : residuo.toString();
+      let dvEsperado;
+      if (residuo === 11) dvEsperado = '0';
+      else if (residuo === 10) dvEsperado = 'K';
+      else dvEsperado = residuo.toString();
+
       return dvEsperado === dvIngresado;
     }
 
@@ -237,7 +246,7 @@
       }
     }
 
-    document.getElementById('client-form').addEventListener('submit', async function (e) {
+    document.getElementById('client-form').addEventListener('submit', function (e) {
       e.preventDefault();
       alert("Este botón envía solo el pedido actual ingresado. Use el botón verde para enviar todos.");
     });
