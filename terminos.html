@@ -4,64 +4,100 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Espacio Raro - Términos y Condiciones</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #f5f5f5;
+    }
+    footer {
+      background-color: #363636;
+      color: white;
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
 
   <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="index.html">Espacio Raro</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="index.html">Inicio</a></li>
-          <li class="nav-item"><a class="nav-link active" href="#">Términos</a></li>
-        </ul>
+  <nav class="navbar is-dark" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="index.html">
+        Espacio Raro
+      </a>
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navbarMenu" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="index.html">Inicio</a>
+        <a class="navbar-item is-active" href="#">Términos</a>
       </div>
     </div>
   </nav>
 
   <!-- Contenido -->
-  <div class="container my-5">
-    <h1 class="mb-4">Términos y Condiciones</h1>
-    <p>Bienvenido a <strong>Espacio Raro</strong>. Al acceder o utilizar nuestros servicios, aceptas estar sujeto a los siguientes términos y condiciones.</p>
+  <section class="section">
+    <div class="container">
+      <div class="box">
+        <h1 class="title">Términos y Condiciones</h1>
+        <p>Bienvenido a <strong>Espacio Raro</strong>. Al acceder o utilizar nuestros servicios, aceptas estar sujeto a los siguientes términos y condiciones.</p>
 
-    <h3>1. Información general</h3>
-    <p>Espacio Raro es una tienda especializada en productos personalizados a pedido. Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
+        <h3 class="title is-4 mt-5">1. Información general</h3>
+        <p>Espacio Raro es una tienda especializada en productos personalizados a pedido. Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
 
-    <h3>2. Pedidos y pagos</h3>
-    <ul>
-      <li>Todos los pedidos son bajo solicitud y pueden requerir confirmación de stock o diseño.</li>
-      <li>El pago debe realizarse en su totalidad antes del inicio de la producción.</li>
-    </ul>
+        <h3 class="title is-4 mt-5">2. Pedidos y pagos</h3>
+        <ul class="mt-3">
+          <li>Todos los pedidos son bajo solicitud y pueden requerir confirmación de stock o diseño.</li>
+          <li>El pago debe realizarse en su totalidad antes del inicio de la producción.</li>
+        </ul>
 
-    <h3>3. Envíos</h3>
-    <p>Los plazos de entrega son estimados y pueden variar según ubicación o disponibilidad. No somos responsables por retrasos causados por terceros (como couriers o aduanas).</p>
+        <h3 class="title is-4 mt-5">3. Envíos</h3>
+        <p>Los plazos de entrega son estimados y pueden variar según ubicación o disponibilidad. No somos responsables por retrasos causados por terceros (como couriers o aduanas).</p>
 
-    <h3>4. Devoluciones y cambios</h3>
-    <p>Al ser productos personalizados, no aceptamos devoluciones salvo por defectos comprobables en fabricación.</p>
+        <h3 class="title is-4 mt-5">4. Devoluciones y cambios</h3>
+        <p>Al ser productos personalizados, no aceptamos devoluciones salvo por defectos comprobables en fabricación.</p>
 
-    <h3>5. Privacidad</h3>
-    <p>Tu información personal será utilizada únicamente para procesar pedidos y mejorar nuestra experiencia de usuario. No compartimos datos con terceros no relacionados.</p>
+        <h3 class="title is-4 mt-5">5. Privacidad</h3>
+        <p>Tu información personal será utilizada únicamente para procesar pedidos y mejorar nuestra experiencia de usuario. No compartimos datos con terceros no relacionados.</p>
 
-    <h3>6. Uso del sitio</h3>
-    <p>Al usar este sitio, te comprometes a no realizar actividades fraudulentas ni a intentar vulnerar su seguridad.</p>
+        <h3 class="title is-4 mt-5">6. Uso del sitio</h3>
+        <p>Al usar este sitio, te comprometes a no realizar actividades fraudulentas ni a intentar vulnerar su seguridad.</p>
 
-    <h3>7. Contacto</h3>
-    <p>Para cualquier duda, puedes escribirnos a nuestro Instagram <a href="https://www.instagram.com/espacio_rar0/" target="_blank">@espacio_rar0</a> o usar el formulario de contacto en nuestro sitio.</p>
+        <h3 class="title is-4 mt-5">7. Contacto</h3>
+        <p>Para cualquier duda, puedes escribirnos a nuestro Instagram 
+          <a href="https://www.instagram.com/espacio_rar0/" target="_blank">@espacio_rar0</a> 
+          o usar el formulario de contacto en nuestro sitio.
+        </p>
 
-    <hr>
-    <p>Última actualización: Julio 2025</p>
-  </div>
+        <hr>
+        <p>Última actualización: Julio 2025</p>
+      </div>
+    </div>
+  </section>
 
   <!-- Footer -->
-  <footer class="bg-dark text-white text-center py-3">
+  <footer class="footer has-text-centered py-4">
     &copy; 2025 Espacio Raro. Todos los derechos reservados.
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Navbar burger para móvil
+    document.addEventListener('DOMContentLoaded', () => {
+      const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+      if ($navbarBurgers.length > 0) {
+        $navbarBurgers.forEach( el => {
+          el.addEventListener('click', () => {
+            const target = el.dataset.target;
+            const $target = document.getElementById(target);
+            el.classList.toggle('is-active');
+            $target.classList.toggle('is-active');
+          });
+        });
+      }
+    });
+  </script>
 </body>
 </html>
