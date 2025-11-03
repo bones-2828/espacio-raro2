@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin</title>
+  <link rel="stylesheet" href="{% static 'css/admin_dashboard.css' %}">
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <h1>Panel de Administración</h1>
+    <p>Bienvenido, {{ request.user.username }}</p>
+
+    <div class="dashboard-grid">
+
+      <!-- Sección de Clientes -->
+      <div class="card">
+        <h2>Clientes</h2>
+        <ul>
+          <li><a href="{% url 'clientes_create' %}">➕ Crear cliente</a></li>
+          <li><a href="{% url 'clientes_list' %}">📋 Listar clientes</a></li>
+          <li><a href="{% url 'clientes_edit_select' %}">✏️ Editar cliente</a></li>
+          <li><a href="{% url 'clientes_delete_select' %}">🗑️ Eliminar cliente</a></li>
+        </ul>
+      </div>
+
+      <!-- Sección de Productos -->
+      <div class="card">
+        <h2>Productos</h2>
+        <ul>
+          <li><a href="{% url 'productos_create' %}">➕ Crear producto</a></li>
+          <li><a href="{% url 'productos_list' %}">📋 Listar productos</a></li>
+          <li><a href="{% url 'productos_edit_select' %}">✏️ Editar producto</a></li>
+          <li><a href="{% url 'productos_delete_select' %}">🗑️ Eliminar producto</a></li>
+        </ul>
+      </div>
+
+      <!-- Sección de Pedidos -->
+      <div class="card">
+        <h2>Pedidos</h2>
+        <ul>
+          <li><a href="{% url 'pedidos_create' %}">➕ Crear pedido</a></li>
+          <li><a href="{% url 'pedidos_list' %}">📋 Listar pedidos</a></li>
+          <li><a href="{% url 'pedidos_edit_select' %}">✏️ Editar pedido</a></li>
+          <li><a href="{% url 'pedidos_delete_select' %}">🗑️ Eliminar pedido</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="logout">
+      <a href="{% url 'logout' %}" class="logout-btn">🚪 Cerrar sesión</a>
+    </div>
+  </div>
+</body>
+</html>
