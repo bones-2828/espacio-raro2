@@ -10,47 +10,39 @@
 <body>
   <div class="dashboard-wrapper">
     <h1>Panel de Administración</h1>
-    <p>Bienvenido, {{ request.user.username }}</p>
+    <p>Bienvenido, {{ request.user.username }} 👋</p>
 
     <div class="dashboard-grid">
-
-      <!-- Sección de Clientes -->
       <div class="card">
-        <h2>Clientes</h2>
+        <h2>Usuarios</h2>
         <ul>
-          <li><a href="{% url 'clientes_create' %}">➕ Crear cliente</a></li>
-          <li><a href="{% url 'clientes_list' %}">📋 Listar clientes</a></li>
-          <li><a href="{% url 'clientes_edit_select' %}">✏️ Editar cliente</a></li>
-          <li><a href="{% url 'clientes_delete_select' %}">🗑️ Eliminar cliente</a></li>
+          <li><a href="#">Crear usuario</a></li>
+          <li><a href="{% url 'clientes_list' %}">Listar usuarios</a></li>
         </ul>
       </div>
 
-      <!-- Sección de Productos -->
       <div class="card">
         <h2>Productos</h2>
         <ul>
-          <li><a href="{% url 'productos_create' %}">➕ Crear producto</a></li>
-          <li><a href="{% url 'productos_list' %}">📋 Listar productos</a></li>
-          <li><a href="{% url 'productos_edit_select' %}">✏️ Editar producto</a></li>
-          <li><a href="{% url 'productos_delete_select' %}">🗑️ Eliminar producto</a></li>
+          <li><a href="#">Crear producto</a></li>
+          <li><a href="#">Listar productos</a></li>
         </ul>
       </div>
-
-      <!-- Sección de Pedidos -->
-      <div class="card">
-        <h2>Pedidos</h2>
-        <ul>
-          <li><a href="{% url 'pedidos_create' %}">➕ Crear pedido</a></li>
-          <li><a href="{% url 'pedidos_list' %}">📋 Listar pedidos</a></li>
-          <li><a href="{% url 'pedidos_edit_select' %}">✏️ Editar pedido</a></li>
-          <li><a href="{% url 'pedidos_delete_select' %}">🗑️ Eliminar pedido</a></li>
-        </ul>
-      </div>
-
     </div>
 
+    <div class="card">
+        <h2>Pediddos</h2>
+        <ul>
+          <li><a href="#">Crear pedido</a></li>
+          <li><a href="#">Listar pedidos</a></li>
+        </ul>
+      </div>
+    </div>
+
+    
+
     <div class="logout">
-      <a href="{% url 'logout' %}" class="logout-btn">🚪 Cerrar sesión</a>
+      <a href="{% url 'homepage' %}">Cerrar sesión</a>
     </div>
   </div>
 </body>

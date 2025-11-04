@@ -50,3 +50,6 @@ class Detalles_pedidos(models.Model):
 
     def __str__(self):
         return f"Detalle #{self.id_detalle} - Pedido {self.pedido.id_pedido}"
+    
+    
+    

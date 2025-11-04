@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Clientes, Producto, Pedidos, Detalles_pedidos
+from .models import Clientes
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={
@@ -20,23 +20,13 @@ class CustomUserCreationForm(UserCreationForm):
         }
 
 
-
-class ClienteForm(forms.ModelForm):
+class ClientesForm(forms.ModelForm):
     class Meta:
         model = Clientes
-        fields = '__all__'
-
-class ProductoForm(forms.ModelForm):
-    class Meta:
-        model = Producto
-        fields = '__all__'
-
-class PedidoForm(forms.ModelForm):
-    class Meta:
-        model = Pedidos
-        fields = '__all__'
-
-class DetallePedidoForm(forms.ModelForm):
-    class Meta:
-        model = Detalles_pedidos
-        fields = '__all__'
+        fields = ['nombre', 'apellido', 'email', 'telefono']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'apellido': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control'}),
+        }
