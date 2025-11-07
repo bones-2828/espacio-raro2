@@ -12,37 +12,50 @@
     <h1>Panel de Administración</h1>
     <p>Bienvenido, {{ request.user.username }} 👋</p>
 
+    <!-- Sección principal organizada en cuadrícula -->
     <div class="dashboard-grid">
+
+      <!-- Usuarios -->
       <div class="card">
         <h2>Usuarios</h2>
         <ul>
-          <li><a href="#">Crear usuario</a></li>
+          <li><a href="{% url 'clientes_create' %}">Crear usuario</a></li>
           <li><a href="{% url 'clientes_list' %}">Listar usuarios</a></li>
         </ul>
       </div>
 
+      <!-- Productos -->
       <div class="card">
         <h2>Productos</h2>
         <ul>
-          <li><a href="#">Crear producto</a></li>
-          <li><a href="#">Listar productos</a></li>
+          <li><a href="{% url 'productos_create' %}">Crear producto</a></li>
+          <li><a href="{% url 'productos_list' %}">Listar productos</a></li>
         </ul>
       </div>
-    </div>
 
-    <div class="card">
-        <h2>Pediddos</h2>
+      <!-- Pedidos -->
+      <div class="card">
+        <h2>Pedidos</h2>
         <ul>
-          <li><a href="#">Crear pedido</a></li>
-          <li><a href="#">Listar pedidos</a></li>
+          <li><a href="{% url 'pedidos_create' %}">Crear pedido</a></li>
+          <li><a href="{% url 'pedidos_list' %}">Listar pedidos</a></li>
         </ul>
       </div>
+
+      <!-- Detalles de Pedidos -->
+      <div class="card">
+        <h2>Detalles de pedidos</h2>
+        <ul>
+          <li><a href="{% url 'detalles_pedidos_create' %}">Crear detalle</a></li>
+          <li><a href="{% url 'detalles_pedidos_list' %}">Listar detalles</a></li>
+        </ul>
+      </div>
+
     </div>
 
-    
-
-    <div class="logout">
-      <a href="{% url 'homepage' %}">Cerrar sesión</a>
+    <!-- Botón de cierre de sesión -->
+    <div class="logout text-center mt-4">
+      <a href="{% url 'homepage' %}" class="btn-logout">Cerrar sesión</a>
     </div>
   </div>
 </body>

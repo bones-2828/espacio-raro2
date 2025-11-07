@@ -10,6 +10,16 @@ class Clientes(models.Model):
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
 
+    @property
+    def historial_pedidos(self):
+        """Retorna la cantidad de pedidos asociados al cliente."""
+        return self.pedidos.count()  # usa el related_name de Pedidos
+
+    @property
+    def total_gastado(self):
+        """Retorna el monto total gastado por el cliente."""
+        return sum(p.precio_total for p in self.pedidos.all())
+
 
 class Producto(models.Model):
     id_producto = models.AutoField(primary_key=True)
@@ -50,6 +60,4 @@ class Detalles_pedidos(models.Model):
 
     def __str__(self):
         return f"Detalle #{self.id_detalle} - Pedido {self.pedido.id_pedido}"
-    
-    
-    
+

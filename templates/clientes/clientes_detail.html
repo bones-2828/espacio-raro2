@@ -23,6 +23,38 @@
         <a href="{% url 'clientes_list' %}" class="btn btn-secondary">⬅️ Volver</a>
       </div>
     </div>
+    <div>
+      <h2>Historial de Pedidos</h2>
+
+<p><strong>Total de pedidos:</strong> {{ cliente.historial_pedidos }}</p>
+<p><strong>Total gastado:</strong> ${{ cliente.total_gastado }}</p>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>ID Pedido</th>
+      <th>Fecha Inicio</th>
+      <th>Estado</th>
+      <th>Precio Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pedido in cliente.pedidos.all %}
+      <tr>
+        <td>{{ pedido.id_pedido }}</td>
+        <td>{{ pedido.fecha_inicio }}</td>
+        <td>{{ pedido.estado }}</td>
+        <td>${{ pedido.precio_total }}</td>
+      </tr>
+    {% empty %}
+      <tr>
+        <td colspan="4">Este cliente no tiene pedidos registrados.</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+    </div>
   </div>
 
   <footer class="text-center mt-5 bg-dark text-light p-3">
