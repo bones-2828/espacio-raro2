@@ -33,18 +33,18 @@
                 {% for detalle in detalles %}
                 <tr>
                     <td>{{ detalle.id_detalle }}</td>
-                    <td class="text-truncate" style="max-width: 120px;">{{ detalle.pedido }}</td>
-                    <td class="text-truncate" style="max-width: 120px;">{{ detalle.producto }}</td>
+                    <td>#{{ detalle.pedido.id_pedido }}</td>
+                    <td>{{ detalle.producto.nombre }}</td>
                     <td>{{ detalle.cantidad }}</td>
-                    <td>${{ detalle.producto.precio }}</td>
+                    <td>${{ detalle.producto.precio_unitario }}</td>
                     <td>${{ detalle.subtotal }}</td>
                     <td class="text-nowrap">
-                        <a href="{% url 'detalles_pedidos_update' detalle.id_detalle %}" 
+                        <a href="{% url 'detalles_pedidos_update' pk=detalle.id_detalle %}" 
                            class="btn btn-outline-primary btn-sm px-2 py-1 me-1"
                            title="Editar">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <a href="{% url 'detalles_pedidos_delete' detalle.id_detalle %}" 
+                        <a href="{% url 'detalles_pedidos_delete' pk=detalle.id_detalle %}" 
                            class="btn btn-outline-danger btn-sm px-2 py-1"
                            title="Eliminar"
                            onclick="return confirm('¿Estás seguro de eliminar este detalle de pedido?');">

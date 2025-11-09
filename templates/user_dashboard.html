@@ -10,17 +10,17 @@
 <body>
   <div class="login-wrapper">
     <div class="login-card">
-      <h1>Bienvenido, {{ username }}</h1>
+      <h1>Bienvenido, {{ request.user.username }}</h1>
       <p>Este es tu panel de usuario.</p>
 
       <ul>
-        <li><a href="#">Ver pedidos</a></li>
-        <li><a href="#">Editar perfil</a></li>
+        <li><a href="{% url 'user_pedidos_list' %}">Ver mis pedidos</a></li>
+        <li><a href="{% url 'user_perfil_edit' %}">Editar mi perfil</a></li>
         <li><a href="#">Contactar soporte</a></li>
       </ul>
 
       <div class="form-actions">
-        <a href="{% url 'homepage' %}">Cerrar sesión</a>
+        <a href="{% url 'logout' %}">Cerrar sesión</a>
       </div>
     </div>
   </div>

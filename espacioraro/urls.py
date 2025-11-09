@@ -9,6 +9,7 @@ urlpatterns = [
     # Sitio general
     path('', views.homepage, name="homepage"),
     path('quickorder/', views.order, name="quickorder"),
+    path('quickorder_success/', views.pedido_exitoso, name="quickorder_success"),
 
     # Autenticación
     path('login/', views.login_view, name="login_view"), 
@@ -18,6 +19,11 @@ urlpatterns = [
     # Paneles
     path('dashboard/', views.dashboard, name="dashboard"),
     path('user_dashboard/', views.user_dashboard, name='user_dashboard'),
+    path('user/pedidos/', views.user_pedidos_list, name='user_pedidos_list'),
+    path('user/pedidos/<int:pk>/', views.user_pedido_detail, name='user_pedido_detail'),
+
+# Perfil del usuario
+path('user/perfil/', views.user_perfil_edit, name='user_perfil_edit'),
 
     # CRUD Clientes
     path('clientes/', views.clientes_list, name='clientes_list'),

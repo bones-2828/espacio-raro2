@@ -10,10 +10,48 @@
 <body>
   <div class="container mt-4">
     <h2>Editar Información del Cliente</h2>
+
     <form method="POST" class="shadow p-4 rounded bg-light">
       {% csrf_token %}
-      {{ form.as_p }}
-      <div class="text-end">
+
+      <!-- Nombre y Apellido -->
+      <div class="row mb-3">
+        <div class="col">
+          <label for="id_nombre" class="form-label">Nombre</label>
+          {{ form.nombre }}
+        </div>
+        <div class="col">
+          <label for="id_apellido" class="form-label">Apellido</label>
+          {{ form.apellido }}
+        </div>
+      </div>
+
+      <!-- Email y Teléfono -->
+      <div class="row mb-3">
+        <div class="col">
+          <label for="id_email" class="form-label">Email</label>
+          {{ form.email }}
+        </div>
+        <div class="col">
+          <label for="id_telefono" class="form-label">Teléfono</label>
+          {{ form.telefono }}
+        </div>
+      </div>
+
+      <!-- Dirección -->
+      <div class="mb-3">
+        <label for="id_direccion" class="form-label">Dirección</label>
+        {{ form.direccion }}
+      </div>
+
+      <!-- RUT -->
+      <div class="mb-3">
+        <label for="id_rut" class="form-label">RUT</label>
+        {{ form.rut }}
+      </div>
+
+      <!-- Botones -->
+      <div class="text-end mt-3">
         <button type="submit" class="btn btn-warning">✏️ Actualizar</button>
         <a href="{% url 'clientes_list' %}" class="btn btn-secondary">⬅️ Cancelar</a>
       </div>

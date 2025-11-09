@@ -9,56 +9,24 @@
 </head>
 <body>
   <div class="container mt-5">
-    <div class="card shadow p-4">
-      <h3>👤 Detalles del Cliente</h3>
-      <ul class="list-group list-group-flush mt-3">
+    <!-- TARJETA DE INFORMACIÓN DEL CLIENTE -->
+    <div class="card shadow p-4 mb-5">
+      <h3 class="mb-3">👤 Detalles del Cliente</h3>
+      <ul class="list-group list-group-flush">
         <li class="list-group-item"><strong>ID:</strong> {{ cliente.id_cliente }}</li>
         <li class="list-group-item"><strong>Nombre:</strong> {{ cliente.nombre }}</li>
         <li class="list-group-item"><strong>Apellido:</strong> {{ cliente.apellido }}</li>
         <li class="list-group-item"><strong>Email:</strong> {{ cliente.email }}</li>
         <li class="list-group-item"><strong>Teléfono:</strong> {{ cliente.telefono }}</li>
+        {% if cliente.direccion %}
+          <li class="list-group-item"><strong>Dirección:</strong> {{ cliente.direccion }}</li>
+        {% endif %}
+        {% if cliente.tipo_cliente %}
+          <li class="list-group-item"><strong>Tipo de cliente:</strong> {{ cliente.tipo_cliente }}</li>
+        {% endif %}
+        {% if cliente.fecha_registro %}
+          <li class="list-group-item"><strong>Fecha de registro:</strong> {{ cliente.fecha_registro|date:"d/m/Y" }}</li>
+        {% endif %}
       </ul>
-      <div class="mt-4 text-end">
-        <a href="{% url 'clientes_update' cliente.id_cliente %}" class="btn btn-warning">✏️ Editar</a>
-        <a href="{% url 'clientes_list' %}" class="btn btn-secondary">⬅️ Volver</a>
-      </div>
-    </div>
-    <div>
-      <h2>Historial de Pedidos</h2>
 
-<p><strong>Total de pedidos:</strong> {{ cliente.historial_pedidos }}</p>
-<p><strong>Total gastado:</strong> ${{ cliente.total_gastado }}</p>
-
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>ID Pedido</th>
-      <th>Fecha Inicio</th>
-      <th>Estado</th>
-      <th>Precio Total</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for pedido in cliente.pedidos.all %}
-      <tr>
-        <td>{{ pedido.id_pedido }}</td>
-        <td>{{ pedido.fecha_inicio }}</td>
-        <td>{{ pedido.estado }}</td>
-        <td>${{ pedido.precio_total }}</td>
-      </tr>
-    {% empty %}
-      <tr>
-        <td colspan="4">Este cliente no tiene pedidos registrados.</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
-
-    </div>
-  </div>
-
-  <footer class="text-center mt-5 bg-dark text-light p-3">
-    <p>Proyecto Espacio Raro | Detalles de Cliente</p>
-  </footer>
-</body>
-</html>
+      <div class=

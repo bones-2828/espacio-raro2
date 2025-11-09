@@ -38,19 +38,24 @@ class CustomUserCreationForm(UserCreationForm):
 class ClientesForm(BaseStyledForm):
     class Meta:
         model = Clientes
-        fields = ['nombre', 'apellido', 'email', 'telefono']
+        fields = ['nombre', 'apellido', 'email', 'telefono', 'direccion', 'rut']
+
 
 
 # ---------- FORMULARIO PEDIDOS ----------
-class PedidosForm(BaseStyledForm):
+class PedidosForm(forms.ModelForm):
     class Meta:
         model = Pedidos
-        fields = ['cliente', 'fecha_inicio', 'fecha_entrega', 'fecha_termino', 'estado', 'precio_total']
+        fields = '__all__'
         widgets = {
-            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_entrega': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_termino': forms.DateInput(attrs={'type': 'date'}),
-            'precio_total': forms.NumberInput(attrs={'step': '0.01'}),
+            'cliente': forms.Select(attrs={'class': 'form-control'}),
+            'fecha_inicio': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_entrega': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_termino': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'estado': forms.TextInput(attrs={'class': 'form-control'}),
+            'precio_total': forms.NumberInput(attrs={'class': 'form-control'}),
+            'mensaje': forms.Textarea(attrs={'class': 'form-control'}),
+            'imagen': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 
 
@@ -58,12 +63,13 @@ class PedidosForm(BaseStyledForm):
 class DetallePedidosForm(BaseStyledForm):
     class Meta:
         model = Detalles_pedidos
-        fields = ['pedido', 'producto', 'cantidad', 'subtotal']
+        fields = ['pedido', 'producto', 'cantidad', 'subtotal', 'email_usuario']  # 👈 nuevo campo
         widgets = {
             'pedido': forms.Select(attrs={'class': 'form-select'}),
             'producto': forms.Select(attrs={'class': 'form-select'}),
             'cantidad': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
             'subtotal': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'email_usuario': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Correo del usuario'}),
         }
 
 
@@ -75,3 +81,14 @@ DetallePedidoFormSet = inlineformset_factory(
     extra=1,
     can_delete=True,
 )
+
+
+class PedidoInvitadoForm(forms.ModelForm):
+    email_usuario = forms.EmailField(label="Tu correo electrónico")
+
+    class Meta:
+        model = Detalles_pedidos
+        fields = ['producto', 'cantidad', 'email_usuario', 'pedido']
+        widgets = {
+            'pedido': forms.HiddenInput(),
+        }

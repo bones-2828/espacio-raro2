@@ -3,8 +3,15 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
+from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from io import BytesIO
+from django.utils import timezone
+from decimal import Decimal
+from django.conf import settings
 from .models import Clientes, Producto, Pedidos, Detalles_pedidos
-from .forms import ClientesForm, PedidosForm, DetallePedidosForm
+from .forms import ClientesForm, PedidosForm, DetallePedidosForm, PedidoInvitadoForm
 
 # ---------------------------
 # VISTAS GENERALES DEL SITIO
@@ -13,8 +20,10 @@ from .forms import ClientesForm, PedidosForm, DetallePedidosForm
 def homepage(request):
     return render(request, "index.html")
 
+
 def order(request):
     return render(request, "quickorder.html")
+
 
 # ---------------------------
 # AUTENTICACIÓN Y USUARIOS
@@ -26,7 +35,7 @@ def login_view(request):
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user:
             login(request, user)
             if user.is_superuser or user.is_staff:
                 return redirect("dashboard")
@@ -85,9 +94,9 @@ def logout_view(request):
 def user_dashboard(request):
     if request.user.is_superuser or request.user.is_staff:
         return redirect('dashboard')
-    
     context = {'username': request.user.username}
     return render(request, 'user_dashboard.html', context)
+
 
 # ---------------------------
 # CRUD CLIENTES
@@ -102,22 +111,6 @@ def clientes_list(request):
 
 @login_required
 @user_passes_test(is_admin)
-def clientes_create(request):
-    if request.method == 'POST':
-        form = ClientesForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Cliente creado correctamente.")
-            return redirect('clientes_list')
-        else:
-            messages.error(request, "Error al guardar el cliente.")
-    else:
-        form = ClientesForm()
-    return render(request, 'clientes/clientes_form.html', {'form': form, 'titulo': 'Crear Cliente'})
-
-
-@login_required
-@user_passes_test(is_admin)
 def clientes_detail(request, pk):
     cliente = get_object_or_404(Clientes, pk=pk)
     return render(request, 'clientes/clientes_detail.html', {'cliente': cliente})
@@ -125,19 +118,25 @@ def clientes_detail(request, pk):
 
 @login_required
 @user_passes_test(is_admin)
+def clientes_create(request):
+    form = ClientesForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Cliente creado correctamente.")
+        return redirect('clientes_list')
+    return render(request, 'clientes/clientes_form.html', {'form': form, 'titulo': 'Crear Cliente'})
+
+
+@login_required
+@user_passes_test(is_admin)
 def clientes_update(request, pk):
     cliente = get_object_or_404(Clientes, pk=pk)
-    if request.method == 'POST':
-        form = ClientesForm(request.POST, instance=cliente)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Cliente actualizado correctamente.")
-            return redirect('clientes_list')
-        else:
-            messages.error(request, "Error al actualizar el cliente.")
-    else:
-        form = ClientesForm(instance=cliente)
-    return render(request, 'clientes/clientes_update.html', {'form': form, 'titulo': 'Editar Cliente'})
+    form = ClientesForm(request.POST or None, instance=cliente)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Cliente actualizado correctamente.")
+        return redirect('clientes_list')
+    return render(request, 'clientes/clientes_form.html', {'form': form, 'titulo': 'Editar Cliente'})
 
 
 @login_required
@@ -148,165 +147,354 @@ def clientes_delete(request, pk):
         cliente.delete()
         messages.success(request, "Cliente eliminado correctamente.")
         return redirect('clientes_list')
-    return render(request, 'clientes/clientes_confirm_delete.html', {'cliente': cliente})
+    return render(request, 'clientes/clientes_confirm_delete.html', {'object': cliente})
 
 
-#Crud productos
+# ---------------------------
+# CRUD PRODUCTOS
+# ---------------------------
 
-# LISTAR PRODUCTOS
+@login_required
+@user_passes_test(is_admin)
 def productos_list(request):
     productos = Producto.objects.all()
     return render(request, 'productos/productos_list.html', {'productos': productos})
 
-# CREAR PRODUCTO
+
+@login_required
+@user_passes_test(is_admin)
 def productos_create(request):
     if request.method == 'POST':
-        nombre = request.POST['nombre']
-        tipo_producto = request.POST['tipo_producto']
-        talla = request.POST['talla']
-        color = request.POST['color']
-        precio_unitario = request.POST['precio_unitario']
-        cantidad_stock = request.POST['cantidad_stock']
-        distribuidor = request.POST['distribuidor']
-        contacto_distribuidor = request.POST['contacto_distribuidor']
-        stock_critico = request.POST['stock_critico']
-        margen_ganancia = request.POST['margen_ganancia']
-
-        Producto.objects.create(
-            nombre=nombre,
-            tipo_producto=tipo_producto,
-            talla=talla,
-            color=color,
-            precio_unitario=precio_unitario,
-            cantidad_stock=cantidad_stock,
-            distribuidor=distribuidor,
-            contacto_distribuidor=contacto_distribuidor,
-            stock_critico=stock_critico,
-            margen_ganancia=margen_ganancia
+        producto = Producto(
+            nombre=request.POST['nombre'],
+            tipo_producto=request.POST['tipo_producto'],
+            talla=request.POST.get('talla', ''),
+            color=request.POST.get('color', ''),
+            precio_unitario=request.POST['precio_unitario'],
+            cantidad_stock=request.POST['cantidad_stock'],
+            distribuidor=request.POST.get('distribuidor', ''),
+            contacto_distribuidor=request.POST.get('contacto_distribuidor', '')
         )
-
+        producto.save()
         messages.success(request, 'Producto creado correctamente.')
         return redirect('productos_list')
-
     return render(request, 'productos/productos_form.html')
 
-# EDITAR PRODUCTO
+
+@login_required
+@user_passes_test(is_admin)
 def productos_update(request, id_producto):
     producto = get_object_or_404(Producto, id_producto=id_producto)
-
     if request.method == 'POST':
-        producto.nombre = request.POST['nombre']
-        producto.tipo_producto = request.POST['tipo_producto']
-        producto.talla = request.POST['talla']
-        producto.color = request.POST['color']
-        producto.precio_unitario = request.POST['precio_unitario']
-        producto.cantidad_stock = request.POST['cantidad_stock']
-        producto.distribuidor = request.POST['distribuidor']
-        producto.contacto_distribuidor = request.POST['contacto_distribuidor']
-        producto.stock_critico = request.POST['stock_critico']
-        producto.margen_ganancia = request.POST['margen_ganancia']
-
+        for campo in ['nombre', 'tipo_producto', 'talla', 'color', 'precio_unitario', 'cantidad_stock', 'distribuidor', 'contacto_distribuidor']:
+            setattr(producto, campo, request.POST.get(campo, getattr(producto, campo)))
         producto.save()
         messages.success(request, 'Producto actualizado correctamente.')
         return redirect('productos_list')
-
     return render(request, 'productos/productos_form.html', {'producto': producto})
 
-# ELIMINAR PRODUCTO
+
+@login_required
+@user_passes_test(is_admin)
 def productos_delete(request, id_producto):
     producto = get_object_or_404(Producto, id_producto=id_producto)
     if request.method == 'POST':
         producto.delete()
         messages.success(request, 'Producto eliminado correctamente.')
         return redirect('productos_list')
-
     return render(request, 'productos/productos_confirm_delete.html', {'producto': producto})
 
 
-#Crud Pedidos y detalles de pedidos
+# ---------------------------
+# CRUD PEDIDOS
+# ---------------------------
 
+@login_required
+@user_passes_test(is_admin)
 def pedidos_list(request):
     pedidos = Pedidos.objects.select_related('cliente').all()
     return render(request, 'pedidos/pedidos_list.html', {'pedidos': pedidos})
 
+
+@login_required
+@user_passes_test(is_admin)
 def pedidos_create(request):
     if request.method == 'POST':
-        form = PedidosForm(request.POST)
+        form = PedidosForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
+            messages.success(request, "Pedido creado correctamente.")
             return redirect('pedidos_list')
     else:
         form = PedidosForm()
     return render(request, 'pedidos/pedidos_form.html', {'form': form})
 
+
+@login_required
+@user_passes_test(is_admin)
 def pedidos_detail(request, pk):
     pedido = get_object_or_404(Pedidos, pk=pk)
-    detalles = pedido.detalles.select_related('producto').all()
+    detalles = pedido.detalles_pedidos_set.all()
     return render(request, 'pedidos/pedidos_detail.html', {'pedido': pedido, 'detalles': detalles})
 
+
+@login_required
+@user_passes_test(is_admin)
 def pedidos_update(request, pk):
     pedido = get_object_or_404(Pedidos, pk=pk)
-    if request.method == 'POST':
-        form = PedidosForm(request.POST, instance=pedido)
-        if form.is_valid():
-            form.save()
-            return redirect('pedidos_list')
-    else:
-        form = PedidosForm(instance=pedido)
+    form = PedidosForm(request.POST or None, instance=pedido)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Pedido actualizado correctamente.")
+        return redirect('pedidos_list')
     return render(request, 'pedidos/pedidos_form.html', {'form': form})
 
+
+@login_required
+@user_passes_test(is_admin)
 def pedidos_delete(request, pk):
     pedido = get_object_or_404(Pedidos, pk=pk)
     if request.method == 'POST':
         pedido.delete()
+        messages.success(request, "Pedido eliminado correctamente.")
         return redirect('pedidos_list')
     return render(request, 'pedidos/pedidos_confirm_delete.html', {'pedido': pedido})
 
 
+# ---------------------------
+# CRUD DETALLES PEDIDOS
+# ---------------------------
 
-# ======== CRUD DETALLES DE PEDIDOS ========
-
+@login_required
+@user_passes_test(is_admin)
 def detalles_pedidos_list(request):
     detalles = Detalles_pedidos.objects.all()
     return render(request, 'detalles_pedidos/detalles_pedidos_list.html', {'detalles': detalles})
 
 
-
+@login_required
+@user_passes_test(is_admin)
 def detalles_pedidos_create(request):
     form = DetallePedidosForm(request.POST or None)
-    if request.method == "POST":
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Detalle de pedido creado correctamente.")
-            return redirect('detalles_pedidos_list')
-        else:
-            messages.error(request, "Error al crear el detalle del pedido.")
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Detalle de pedido creado correctamente.")
+        return redirect('detalles_pedidos_list')
     return render(request, 'detalles_pedidos/detalles_form.html', {'form': form})
 
 
-
+@login_required
+@user_passes_test(is_admin)
 def detalles_pedidos_update(request, pk):
     detalle = get_object_or_404(Detalles_pedidos, pk=pk)
-
-    if request.method == 'POST':
-        form = DetallePedidosForm(request.POST, instance=detalle)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Detalle de pedido actualizado correctamente.')
-            return redirect('detalles_pedidos_list')
-    else:
-        form = DetallePedidosForm(instance=detalle)
-
+    form = DetallePedidosForm(request.POST or None, instance=detalle)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Detalle de pedido actualizado correctamente.')
+        return redirect('detalles_pedidos_list')
     return render(request, 'detalles_pedidos/detalles_form.html', {'form': form})
 
 
-# --- ELIMINAR DETALLE ---
+@login_required
+@user_passes_test(is_admin)
 def detalles_pedidos_delete(request, pk):
     detalle = get_object_or_404(Detalles_pedidos, pk=pk)
-
     if request.method == 'POST':
         detalle.delete()
         messages.success(request, 'Detalle de pedido eliminado correctamente.')
         return redirect('detalles_pedidos_list')
-
     return render(request, 'detalles_pedidos/detalles_confirm_delete.html', {'detalle': detalle})
+
+
+# ---------------------------
+# PEDIDOS ANÓNIMOS
+# ---------------------------
+
+def guardar_detalle_pedido(request):
+    if request.method == 'POST':
+        fullName = request.POST.get('fullName')
+        address = request.POST.get('address')
+        email = request.POST.get('email')
+        rut = request.POST.get('rut')
+        message = request.POST.get('message')
+        product = request.POST.get('productType')
+
+        cliente_invitado, _ = Clientes.objects.get_or_create(
+            email='invitado@demo.cl',
+            defaults={'nombre': 'Invitado', 'apellido': 'Público', 'telefono': 'N/A'}
+        )
+
+        try:
+            producto = Producto.objects.get(nombre__iexact=product)
+        except Producto.DoesNotExist:
+            return JsonResponse({'error': 'El producto no existe'}, status=400)
+
+        pedido = Pedidos.objects.create(
+            cliente=cliente_invitado,
+            fecha_inicio=timezone.now().date(),
+            estado='pendiente',
+            precio_total=Decimal(producto.precio_unitario)
+        )
+
+        Detalles_pedidos.objects.create(
+            pedido=pedido,
+            producto=producto,
+            cantidad=1,
+            subtotal=producto.precio_unitario,
+            email_usuario=email
+        )
+
+        # enviar correo
+        try:
+            send_mail(
+                subject=f'Nuevo pedido recibido - {producto.nombre}',
+                message=(
+                    f"Pedido recibido desde el sitio web:\n\n"
+                    f"Cliente: {fullName}\n"
+                    f"Correo: {email}\n"
+                    f"Dirección: {address}\n"
+                    f"RUT: {rut}\n"
+                    f"Producto: {producto.nombre}\n"
+                    f"Mensaje adicional: {message}\n\n"
+                    f"El pedido ha sido registrado correctamente."
+                ),
+                from_email='tuservidor@tudominio.cl',
+                recipient_list=['destino@tudominio.cl'],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print("Error al enviar correo:", e)
+
+        return JsonResponse({'success': True, 'mensaje': 'Pedido guardado correctamente con email del usuario.'})
+
+    return render(request, 'formulario_pedido.html')
+
+
+def order(request):
+    """Vista de pedido rápido (sin cuenta, cliente comunitario)"""
+    # Crear o recuperar el cliente comunitario
+    cliente_comunitario, _ = Clientes.objects.get_or_create(
+        email="cliente.comunitario@espacioraro.com",
+        defaults={
+            "nombre": "Cliente",
+            "apellido": "Comunitario",
+            "telefono": "000000000",
+            "direccion": "Sin dirección",
+            "rut": "0-0",
+        },
+    )
+
+    if request.method == "POST":
+        nombre_completo = request.POST.get("nombre_completo")
+        email = request.POST.get("email")
+        rut = request.POST.get("rut")
+        direccion = request.POST.get("direccion")
+        mensaje = request.POST.get("mensaje")
+        imagen = request.FILES.get("imagen")
+
+        if not all([nombre_completo, email, rut, direccion]):
+            messages.error(request, "Por favor completa todos los campos obligatorios.")
+            return redirect("quickorder")
+
+        # Crear el pedido con estado automático
+        pedido = Pedidos.objects.create(
+            cliente=cliente_comunitario,
+            estado="Pendiente",  # 👈 asigna el estado automáticamente
+            fecha_inicio=timezone.now(),
+            mensaje=mensaje or "",
+            precio_total=0
+        )
+
+        # Preparar el correo con la información del pedido
+        subject = f"Nuevo pedido #{pedido.id_pedido} recibido"
+        body = (
+            f"Se ha recibido un nuevo pedido comunitario.\n\n"
+            f"Nombre completo: {nombre_completo}\n"
+            f"Email: {email}\n"
+            f"RUT: {rut}\n"
+            f"Dirección: {direccion}\n"
+            f"Mensaje: {mensaje or '(sin mensaje)'}\n"
+            f"Estado: Pendiente\n"
+            f"Fecha del pedido: {pedido.fecha_inicio.strftime('%d/%m/%Y %H:%M')}\n\n"
+            f"ID Interno del Pedido: {pedido.id_pedido}"
+        )
+
+        email_msg = EmailMessage(
+            subject,
+            body,
+            settings.DEFAULT_FROM_EMAIL,
+            ["jtorresllr@gmail.com"],  # 👈 cambia este correo al tuyo
+        )
+
+        # Adjuntar imagen si existe
+        if imagen:
+            img_data = BytesIO(imagen.read())
+            email_msg.attach(imagen.name, img_data.getvalue(), imagen.content_type)
+
+        # Intentar enviar el correo
+        try:
+            email_msg.send(fail_silently=False)
+            messages.success(request, "Tu pedido ha sido enviado correctamente. Recibirás confirmación pronto.")
+        except Exception as e:
+            messages.error(request, f"Ocurrió un error al enviar el correo: {e}")
+
+        return redirect("quickorder_success")
+
+    return render(request, "quickorder.html")
+
+
+def pedido_exitoso(request):
+    return render(request, "quickorder_success.html")
+
+
+
+#pagina de cuentas de usuarios
+
+def user_pedidos_list(request):
+    """Lista de pedidos del usuario"""
+    try:
+        cliente = Clientes.objects.get(email=request.user.email)
+        pedidos = Pedidos.objects.filter(cliente=cliente).order_by('-fecha_inicio')
+    except Clientes.DoesNotExist:
+        pedidos = []
+    return render(request, 'user_pedidos_list.html', {'pedidos': pedidos})
+
+
+@login_required
+def user_pedido_detail(request, pk):
+    """Detalle de un pedido del usuario"""
+    try:
+        cliente = Clientes.objects.get(email=request.user.email)
+        pedido = Pedidos.objects.get(pk=pk, cliente=cliente)
+        detalles = pedido.detalles.all()  # usa related_name="detalles" en tu modelo
+    except (Clientes.DoesNotExist, Pedidos.DoesNotExist):
+        return redirect('user_pedidos_list')
+    
+    return render(request, 'user_pedido_detail.html', {
+        'pedido': pedido,
+        'detalles': detalles
+    })
+
+
+@login_required
+def user_perfil_edit(request):
+    """Editar perfil del usuario"""
+    try:
+        cliente = Clientes.objects.get(email=request.user.email)
+    except Clientes.DoesNotExist:
+        # Si el cliente no existe, crearlo automáticamente
+        cliente = Clientes.objects.create(
+            nombre=request.user.username,
+            email=request.user.email
+        )
+    
+    if request.method == "POST":
+        cliente.nombre = request.POST.get('nombre', cliente.nombre)
+        cliente.apellido = request.POST.get('apellido', cliente.apellido)
+        cliente.telefono = request.POST.get('telefono', cliente.telefono)
+        cliente.direccion = request.POST.get('direccion', cliente.direccion)
+        # No permitimos cambiar email desde aquí
+        cliente.save()
+        return redirect('user_dashboard')
+    
+    return render(request, 'user_perfil_edit.html', {'cliente': cliente})
