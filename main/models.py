@@ -68,7 +68,7 @@ class Pedidos(models.Model):
             subject,
             message,
             settings.DEFAULT_FROM_EMAIL,
-            ["tucorreo@ejemplo.com"],  # 👈 cámbialo por tu correo real
+            ["jtorresllr@gmail.com"],  # 👈 cámbialo por tu correo real
             fail_silently=False,
         )
 

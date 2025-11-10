@@ -21,6 +21,8 @@
 
     <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
+
+      <!-- Datos del cliente -->
       <div class="mb-3">
         <label class="form-label">Nombre completo</label>
         <input type="text" name="nombre_completo" class="form-control" required>
@@ -41,8 +43,29 @@
         <input type="text" name="direccion" class="form-control" required>
       </div>
 
+      <!-- Producto -->
+      <hr>
+      <h5 class="text-center mb-3">🛍️ Detalle del producto</h5>
+
       <div class="mb-3">
-        <label class="form-label">Mensaje</label>
+        <label class="form-label">Producto</label>
+        <select name="producto" class="form-select" required>
+          <option value="">-- Selecciona un producto --</option>
+          {% for p in productos %}
+            <option value="{{ p.id_producto }}">
+              {{ p.nombre }} — {{ p.tipo_producto }} ({{ p.color|default:"sin color" }} / {{ p.talla|default:"sin talla" }}) — ${{ p.precio_unitario }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Cantidad</label>
+        <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Mensaje adicional</label>
         <textarea name="mensaje" class="form-control" rows="3"></textarea>
       </div>
 

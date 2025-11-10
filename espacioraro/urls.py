@@ -9,7 +9,7 @@ urlpatterns = [
     # Sitio general
     path('', views.homepage, name="homepage"),
     path('quickorder/', views.order, name="quickorder"),
-    path('quickorder_success/', views.pedido_exitoso, name="quickorder_success"),
+    path('quickorder_success/', views.pedido_exitoso, name="pedido_exitoso"),
 
     # Autenticación
     path('login/', views.login_view, name="login_view"), 

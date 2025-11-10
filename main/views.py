@@ -234,7 +234,7 @@ def pedidos_create(request):
 @user_passes_test(is_admin)
 def pedidos_detail(request, pk):
     pedido = get_object_or_404(Pedidos, pk=pk)
-    detalles = pedido.detalles_pedidos_set.all()
+    detalles = pedido.detalles.all()
     return render(request, 'pedidos/pedidos_detail.html', {'pedido': pedido, 'detalles': detalles})
 
 
@@ -371,76 +371,61 @@ def guardar_detalle_pedido(request):
 
 
 def order(request):
-    """Vista de pedido rápido (sin cuenta, cliente comunitario)"""
-    # Crear o recuperar el cliente comunitario
-    cliente_comunitario, _ = Clientes.objects.get_or_create(
-        email="cliente.comunitario@espacioraro.com",
-        defaults={
-            "nombre": "Cliente",
-            "apellido": "Comunitario",
-            "telefono": "000000000",
-            "direccion": "Sin dirección",
-            "rut": "0-0",
-        },
-    )
+    productos = Producto.objects.all()
 
-    if request.method == "POST":
-        nombre_completo = request.POST.get("nombre_completo")
-        email = request.POST.get("email")
-        rut = request.POST.get("rut")
-        direccion = request.POST.get("direccion")
-        mensaje = request.POST.get("mensaje")
-        imagen = request.FILES.get("imagen")
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre_completo')
+        email_cliente = request.POST.get('email')
+        rut = request.POST.get('rut')
+        direccion = request.POST.get('direccion')
+        producto_id = request.POST.get('producto')
+        cantidad = request.POST.get('cantidad')
+        mensaje = request.POST.get('mensaje')
+        imagen = request.FILES.get('imagen')
 
-        if not all([nombre_completo, email, rut, direccion]):
-            messages.error(request, "Por favor completa todos los campos obligatorios.")
-            return redirect("quickorder")
+        # Buscar el producto seleccionado
+        producto = Producto.objects.get(id_producto=producto_id)
 
-        # Crear el pedido con estado automático
-        pedido = Pedidos.objects.create(
-            cliente=cliente_comunitario,
-            estado="Pendiente",  # 👈 asigna el estado automáticamente
-            fecha_inicio=timezone.now(),
-            mensaje=mensaje or "",
-            precio_total=0
+        # Crear el cuerpo del correo
+        contenido = f"""
+        📦 NUEVO PEDIDO RECIBIDO
+
+        👤 Nombre: {nombre}
+        📧 Correo: {email_cliente}
+        🪪 RUT: {rut}
+        🏠 Dirección: {direccion}
+
+        🛍️ Producto: {producto.nombre} ({producto.tipo_producto})
+        💰 Precio unitario: ${producto.precio_unitario}
+        🔢 Cantidad: {cantidad}
+        💵 Total: ${producto.precio_unitario * int(cantidad)}
+
+        📝 Mensaje adicional:
+        {mensaje if mensaje else '— Sin mensaje —'}
+        """
+
+        # Crear y configurar el correo
+        email = EmailMessage(
+            subject='Nuevo Pedido — Espacio Raro',
+            body=contenido,
+            from_email='tuservidor@gmail.com',  # cambia por tu correo del servidor
+            to=['jtorresllr@gmail.com'],  # destinatario final
         )
 
-        # Preparar el correo con la información del pedido
-        subject = f"Nuevo pedido #{pedido.id_pedido} recibido"
-        body = (
-            f"Se ha recibido un nuevo pedido comunitario.\n\n"
-            f"Nombre completo: {nombre_completo}\n"
-            f"Email: {email}\n"
-            f"RUT: {rut}\n"
-            f"Dirección: {direccion}\n"
-            f"Mensaje: {mensaje or '(sin mensaje)'}\n"
-            f"Estado: Pendiente\n"
-            f"Fecha del pedido: {pedido.fecha_inicio.strftime('%d/%m/%Y %H:%M')}\n\n"
-            f"ID Interno del Pedido: {pedido.id_pedido}"
-        )
-
-        email_msg = EmailMessage(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            ["jtorresllr@gmail.com"],  # 👈 cambia este correo al tuyo
-        )
-
-        # Adjuntar imagen si existe
+        # Adjuntar imagen si el usuario la sube
         if imagen:
-            img_data = BytesIO(imagen.read())
-            email_msg.attach(imagen.name, img_data.getvalue(), imagen.content_type)
+            email.attach(imagen.name, imagen.read(), imagen.content_type)
 
-        # Intentar enviar el correo
+        # Enviar correo
         try:
-            email_msg.send(fail_silently=False)
-            messages.success(request, "Tu pedido ha sido enviado correctamente. Recibirás confirmación pronto.")
+            email.send()
+            messages.success(request, '✅ Tu pedido fue enviado correctamente.')
         except Exception as e:
-            messages.error(request, f"Ocurrió un error al enviar el correo: {e}")
+            messages.error(request, f'❌ Error al enviar el correo: {e}')
 
-        return redirect("quickorder_success")
+        return redirect('pedido_exitoso')
 
-    return render(request, "quickorder.html")
+    return render(request, 'quickorder.html', {'productos': productos})
 
 
 def pedido_exitoso(request):
@@ -507,7 +492,8 @@ def user_perfil_edit(request):
 def user_quickorder(request):
     """
     Permite a un cliente logueado realizar un pedido rápido con su cuenta.
-    Envía los datos ingresados por correo y registra el pedido en la base de datos.
+    Muestra los datos del cliente, permite seleccionar producto y cantidad,
+    y envía un correo con la información del pedido, además de registrarlo en la BD.
     """
     try:
         cliente = Clientes.objects.get(email=request.user.email)
@@ -515,50 +501,89 @@ def user_quickorder(request):
         messages.error(request, "No se encontró tu perfil de cliente. Contacta al administrador.")
         return redirect('user_dashboard')
 
+    productos = Producto.objects.all()
+
     if request.method == "POST":
+        producto_id = request.POST.get("producto")
+        cantidad = int(request.POST.get("cantidad", 1))
         mensaje = request.POST.get("mensaje")
         imagen = request.FILES.get("imagen")
 
-        # Crear el pedido en la base de datos
+        # Obtener producto
+        try:
+            producto = Producto.objects.get(id_producto=producto_id)
+        except Producto.DoesNotExist:
+            messages.error(request, "El producto seleccionado no existe.")
+            return redirect("user_quickorder")
+
+        # Calcular total
+        total = Decimal(producto.precio_unitario) * cantidad
+
+        # Crear el pedido
         pedido = Pedidos.objects.create(
             cliente=cliente,
             fecha_inicio=timezone.now(),
             estado="Pendiente",
-            precio_total=0  # ✅ corregido
+            precio_total=total
         )
 
-        # Construir el cuerpo del correo
-        subject = f"Nuevo pedido rápido de {cliente.nombre} ({cliente.email})"
-        body = (
-            f"📦 NUEVO PEDIDO RÁPIDO\n\n"
-            f"Cliente: {cliente.nombre}\n"
-            f"RUT: {cliente.rut}\n"
-            f"Dirección: {cliente.direccion}\n"
-            f"Correo: {cliente.email}\n\n"
-            f"Mensaje del pedido:\n{mensaje or 'Sin mensaje.'}\n\n"
-            f"ID del pedido: {pedido.id_pedido}\n"
-            f"Fecha: {pedido.fecha_inicio.strftime('%d/%m/%Y %H:%M:%S')}"
+        # Crear el detalle del pedido
+        Detalles_pedidos.objects.create(
+            pedido=pedido,
+            producto=producto,
+            cantidad=cantidad,
+            subtotal=total,
+            email_usuario=cliente.email
         )
 
+        # Construir el contenido del correo
+        subject = f"Nuevo pedido rápido de {cliente.nombre}"
+        body = f"""
+        📦 NUEVO PEDIDO RÁPIDO
+
+        👤 Cliente: {cliente.nombre}
+        📧 Correo: {cliente.email}
+        🪪 RUT: {cliente.rut or 'No registrado'}
+        🏠 Dirección: {cliente.direccion or 'No registrada'}
+
+        🛍️ Producto: {producto.nombre} ({producto.tipo_producto})
+        💰 Precio unitario: ${producto.precio_unitario}
+        🔢 Cantidad: {cantidad}
+        💵 Total: ${total}
+
+        📝 Mensaje adicional:
+        {mensaje or '— Sin mensaje —'}
+
+        🕓 Fecha del pedido: {pedido.fecha_inicio.strftime('%d/%m/%Y %H:%M:%S')}
+        """
+
+        # Configurar el correo
         email = EmailMessage(
-            subject,
-            body,
+            subject=subject,
+            body=body,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[settings.DEFAULT_FROM_EMAIL],
+            to=["jtorresllr@gmail.com"],  # destino del correo
         )
 
+        # Adjuntar imagen si existe
         if imagen:
             email.attach(imagen.name, imagen.read(), imagen.content_type)
 
+        # Enviar el correo
         try:
             email.send()
             messages.success(request, "✅ Tu pedido fue enviado correctamente.")
         except Exception as e:
-            messages.warning(request, f"⚠️ Pedido registrado, pero ocurrió un error al enviar el correo: {e}")
+            messages.warning(request, f"⚠️ El pedido se guardó, pero no se pudo enviar el correo: {e}")
 
-        return redirect('user_dashboard')
+        return redirect("pedido_exitoso")
 
-    return render(request, "user_quickorder.html", {"cliente": cliente})
+    # Mostrar formulario
+    return render(request, "user_quickorder.html", {
+        "cliente": cliente,
+        "productos": productos
+    })
+
 
 
 @login_required
