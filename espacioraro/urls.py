@@ -22,8 +22,12 @@ urlpatterns = [
     path('user/pedidos/', views.user_pedidos_list, name='user_pedidos_list'),
     path('user/pedidos/<int:pk>/', views.user_pedido_detail, name='user_pedido_detail'),
 
-# Perfil del usuario
-path('user/perfil/', views.user_perfil_edit, name='user_perfil_edit'),
+    #Perfil del usuario
+    path('user/perfil/', views.user_perfil_edit, name='user_perfil_edit'),
+    # Crear pedido desde cuenta de usuario
+    path('user/quickorder/', views.user_quickorder, name='user_quickorder'),
+    path('user/confirm/', views.user_confirm, name='user_confirm'),
+
 
     # CRUD Clientes
     path('clientes/', views.clientes_list, name='clientes_list'),

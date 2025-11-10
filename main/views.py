@@ -491,10 +491,86 @@ def user_perfil_edit(request):
     if request.method == "POST":
         cliente.nombre = request.POST.get('nombre', cliente.nombre)
         cliente.apellido = request.POST.get('apellido', cliente.apellido)
+        cliente.rut = request.POST.get('rut', cliente.rut)  # ✅ ahora se puede editar el RUT
         cliente.telefono = request.POST.get('telefono', cliente.telefono)
         cliente.direccion = request.POST.get('direccion', cliente.direccion)
-        # No permitimos cambiar email desde aquí
+        # El email no se cambia aquí para mantener integridad
         cliente.save()
+        messages.success(request, "✅ Perfil actualizado correctamente.")
         return redirect('user_dashboard')
     
     return render(request, 'user_perfil_edit.html', {'cliente': cliente})
+
+
+
+@login_required
+def user_quickorder(request):
+    """
+    Permite a un cliente logueado realizar un pedido rápido con su cuenta.
+    Envía los datos ingresados por correo y registra el pedido en la base de datos.
+    """
+    try:
+        cliente = Clientes.objects.get(email=request.user.email)
+    except Clientes.DoesNotExist:
+        messages.error(request, "No se encontró tu perfil de cliente. Contacta al administrador.")
+        return redirect('user_dashboard')
+
+    if request.method == "POST":
+        mensaje = request.POST.get("mensaje")
+        imagen = request.FILES.get("imagen")
+
+        # Crear el pedido en la base de datos
+        pedido = Pedidos.objects.create(
+            cliente=cliente,
+            fecha_inicio=timezone.now(),
+            estado="Pendiente",
+            precio_total=0  # ✅ corregido
+        )
+
+        # Construir el cuerpo del correo
+        subject = f"Nuevo pedido rápido de {cliente.nombre} ({cliente.email})"
+        body = (
+            f"📦 NUEVO PEDIDO RÁPIDO\n\n"
+            f"Cliente: {cliente.nombre}\n"
+            f"RUT: {cliente.rut}\n"
+            f"Dirección: {cliente.direccion}\n"
+            f"Correo: {cliente.email}\n\n"
+            f"Mensaje del pedido:\n{mensaje or 'Sin mensaje.'}\n\n"
+            f"ID del pedido: {pedido.id_pedido}\n"
+            f"Fecha: {pedido.fecha_inicio.strftime('%d/%m/%Y %H:%M:%S')}"
+        )
+
+        email = EmailMessage(
+            subject,
+            body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[settings.DEFAULT_FROM_EMAIL],
+        )
+
+        if imagen:
+            email.attach(imagen.name, imagen.read(), imagen.content_type)
+
+        try:
+            email.send()
+            messages.success(request, "✅ Tu pedido fue enviado correctamente.")
+        except Exception as e:
+            messages.warning(request, f"⚠️ Pedido registrado, pero ocurrió un error al enviar el correo: {e}")
+
+        return redirect('user_dashboard')
+
+    return render(request, "user_quickorder.html", {"cliente": cliente})
+
+
+@login_required
+def user_confirm(request):
+    """
+    Muestra los datos del cliente logueado para su confirmación.
+    No permite editar, solo visualizar.
+    """
+    try:
+        cliente = Clientes.objects.get(email=request.user.email)
+    except Clientes.DoesNotExist:
+        messages.error(request, "No se encontró tu perfil de cliente.")
+        return redirect("user_dashboard")
+
+    return render(request, "user_confirm.html", {"cliente": cliente})
